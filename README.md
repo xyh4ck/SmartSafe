@@ -1,6 +1,9 @@
-<div align="center">
-     <h1>SmartSafe（智安）</h1>
-     <h3>大模型安全评测系统</h3>
+<div style="display: flex; align-items: center; justify-content: center; gap: 16px;">
+     <img src="docs/logo.png" alt="SmartSafe Logo" width="180" />
+     <div>
+          <h1 style="margin: 0;">SmartSafe（智安）</h1>
+          <h3 style="margin: 8px 0 0;">大模型安全评测系统</h3>
+     </div>
 </div>
 
 ## 项目简介
@@ -9,25 +12,27 @@ SmartSafe（智安）是一套面向大语言模型（LLM）的安全评测系�
 
 ## 核心功能
 
-### 评测任务（`module_evaltask`）
+### 评测任务管理（`module_evaltask`）
 
-- 创建评测任务、批量执行
-- 任务进度与日志记录
-- 风险分析与汇总输出（规则/分析器注册机制）
+- 三步向导创建任务：选择模型 + 按全部/维度/分类筛选用例，自动批量组装评测输入
+- Celery 异步执行评测，支持并发限流、失败重试与任务幂等保护
+- 提供任务进度、用例明细、阶段日志查询（支持轮询与 ETag 缓存）
+- 内置规则分析与 deepteam 评估，输出风险分数、风险等级、风险原因与 Token 用量
+- 自动生成任务汇总结果：等级分布、通过率（合格率）、指标均值与 Top 风险样本
 
 ### 测试用例库管理（`module_evaluation`）
 
-- 维度/分类管理
-- 测试用例 CRUD
-- 用例版本快照（变更可追溯）
-- 批量导入（前端已提供 Excel 导入交互；后端提供对应导入接口）
+- 关键词题库：支持关键词增删改查、同类唯一性校验、风险等级与匹配类型（精确/模糊/正则）配置、关键词匹配测试、命中计数统计、Excel 导入导出
+- 生成内容测试题库：支持测试用例 CRUD，按维度/分类/状态分页检索；创建/更新时执行维度分类一致性校验与重复校验（同维度+同分类+同 prompt）
+- 候选题审核：支持候选题自动生成（应拒答/不应拒答）、批量审核（通过/驳回）、审核后发布至正式题库，以及覆盖度缺口统计
+- 风险分类：支持风险维度与分类管理、启用状态控制、维度-分类树查询，以及分类模板导入导出
 
 ### 模型接入管理（`module_model`）
 
-- 模型接入配置
-- 连通性测试
-- 状态管理、版本管理
-- 配额字段维护（配额更新接口）
+- 模型注册与配置管理（provider/type/api_base 等）
+- API Key 加密存储与解密调用（评测执行阶段按模型配置自动注入）
+- 连通性测试（在线验证模型可调用性）
+- 模型可用状态批量开关、版本维护
 
 ## 技术栈
 
@@ -65,10 +70,6 @@ cd backend
 # 安装依赖
 pip install -r requirements.txt
 
-# 数据库迁移（首次运行或模型变更后）
-python main.py revision --env=dev
-python main.py upgrade --env=dev
-
 # 启动后端（默认 dev）
 python main.py run --env=dev
 
@@ -91,7 +92,7 @@ python main.py run --env=dev
 cd frontend
 
 pnpm install
-pnpm run dev
+pnpm dev
 ```
 
 ## 配置说明
