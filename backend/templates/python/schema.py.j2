@@ -1,0 +1,35 @@
+# -*- coding:utf-8 -*-
+
+{% if table.sub %}
+from typing import List, Optional
+{% else %}
+from typing import Optional
+{% endif %}
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.core.base_schema import BaseSchema
+
+class {{ class_name }}CreateSchema(BaseModel):
+    """
+    {{ function_name }}新增模型
+    """
+
+    {% for column in columns %}
+    {% if column.column_name not in ['id', 'creator_id', 'created_at', 'updated_at'] %}
+    {{ column.column_name }}: Optional[{{ column.python_type }}] = Field(default=None, description='{{ column.column_comment }}')
+    {% endif %}
+    {% endfor %}
+
+
+class {{ class_name }}UpdateSchema({{ class_name }}CreateSchema):
+    """
+    {{ function_name }}更新模型
+    """
+    ...
+
+
+class {{ class_name }}OutSchema({{ class_name }}CreateSchema, BaseSchema):
+    """
+    {{ function_name }}响应模型
+    """
+    model_config = ConfigDict(from_attributes=True)

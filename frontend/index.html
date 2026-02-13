@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Vue3 + Vite + TypeScript + Element-Plus 的后台管理模板 " />
+    <meta
+      name="keywords"
+      content="vue,element-plus,typescript,vue-element-admin,vue3-element-admin"
+    />
+    <title>%VITE_APP_TITLE%</title>
+  </head>
+
+  <body>
+    <div id="app">
+      <div class="loading-container">
+        <div class="loading-spinner">
+          <div class="loading-container-item">
+            <div class="loading-container-outter"></div>
+            <div class="loading-container-inner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script type="module" src="/src/main.ts"></script>
+
+  <style>
+    html,
+    body,
+    #app {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .loading-container .loading-spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      display: flex;
+      -webkit-transform: translate3d(-50%, -50%, 0);
+      transform: translate3d(-50%, -50%, 0);
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .loading-container .loading-container-item {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 60px;
+      vertical-align: middle;
+      border-radius: 50%;
+    }
+    .loading-container .loading-container-outter {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 4px solid #2d8cf0;
+      border-bottom: 0;
+      border-left-color: transparent;
+      border-radius: 50%;
+      animation: loader-outter 1s cubic-bezier(0.42, 0.61, 0.58, 0.41) infinite;
+    }
+
+    .loading-container .loading-container-inner {
+      position: absolute;
+      top: calc(50% - 20px);
+      left: calc(50% - 20px);
+      width: 40px;
+      height: 40px;
+      border: 4px solid #87bdff;
+      border-right: 0;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: loader-inner 1s cubic-bezier(0.42, 0.61, 0.58, 0.41) infinite;
+    }
+
+    @-webkit-keyframes loader-outter {
+      0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+      }
+
+      100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes loader-outter {
+      0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+      }
+
+      100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+      }
+    }
+
+    @-webkit-keyframes loader-inner {
+      0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+      }
+
+      100% {
+        -webkit-transform: rotate(-360deg);
+        transform: rotate(-360deg);
+      }
+    }
+
+    @keyframes loader-inner {
+      0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+      }
+
+      100% {
+        -webkit-transform: rotate(-360deg);
+        transform: rotate(-360deg);
+      }
+    }
+  </style>
+</html>

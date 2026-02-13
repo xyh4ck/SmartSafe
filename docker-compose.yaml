@@ -1,0 +1,87 @@
+# 应用服务
+services:
+  # 数据库服务
+  mysql:
+    container_name: smartsafe_mysql
+    image: mysql:8.0
+    restart: always
+    environment:
+      TZ: "Asia/Shanghai"
+      MYSQL_ROOT_PASSWORD: "SmartSafe123abc"
+      MYSQL_DATABASE: "smartsafe"
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./devops/mysql/data:/var/lib/mysql
+      - ./devops/mysql/conf:/etc/mysql/conf.d
+      - ./devops/mysql/logs:/var/log/mysql
+    networks:
+      - app_network
+
+  # redis服务
+  redis:
+    container_name: smartsafe_redis
+    image: redis:latest
+    restart: always
+    environment:
+      TZ: "Asia/Shanghai"
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./devops/redis/conf/redis.conf:/etc/redis/redis.conf
+      - ./devops/redis/data:/data
+      - ./devops/redis/logs:/var/log/redis
+    command: redis-server /etc/redis/redis.conf
+    networks:
+      - app_network
+    
+  # # 后端服务
+  # backend:
+  #   container_name: backend
+  #   build:
+  #     context: ./
+  #     dockerfile: ./devops/backend/Dockerfile
+  #   image: backend:latest
+  #   restart: always
+  #   environment:
+  #     TZ: "Asia/Shanghai"
+  #   ports:
+  #     - "8001:8001"
+  #   volumes:
+  #     - ./backend:/home
+  #   depends_on:
+  #     - mysql
+  #     - redis
+  #   networks:
+  #     - app_network
+  
+  # # 前端nginx服务
+  # nginx:
+  #   container_name: nginx
+  #   image: nginx:latest
+  #   restart: always
+  #   environment:
+  #     TZ: "Asia/Shanghai"
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./devops/nginx/nginx.conf:/etc/nginx/nginx.conf
+  #     # - ./frontend/dist:/usr/share/nginx/html/frontend/dist 如果使用服务器构建前端则不要注释这三行
+  #     # - ./fastapp/dist/build/h5:/usr/share/nginx/html/fastapp/dist/build/h5
+  #     # - ./fastdocs/dist:/usr/share/nginx/html/fastdocs/dist
+  #     #  下面三行是本地前端打包好放在服务器的路径，如果使用服务器打包则使用上面方式
+  #     - /home/smartsafe/frontend:/usr/share/nginx/html/frontend
+  #     - /home/smartsafe/fastapp:/usr/share/nginx/html/fastapp
+  #     - /home/smartsafe/fastdocs:/usr/share/nginx/html/fastdocs
+  #     # ssl 证书
+  #     - /home/smartsafe/ssl:/etc/nginx/ssl:ro
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - app_network
+
+# 网络
+networks:
+  app_network:
+    driver: bridge

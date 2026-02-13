@@ -1,0 +1,225 @@
+# -*- coding:utf-8 -*-
+
+import io
+from typing import Any, List, Dict, Optional
+from fastapi import UploadFile
+import pandas as pd
+
+from app.core.base_schema import BatchSetAvailable
+from app.core.exceptions import CustomException
+from app.utils.excel_util import ExcelUtil
+from app.core.logger import logger
+from app.api.v1.module_system.auth.schema import AuthSchema
+from .schema import {{ class_name }}CreateSchema, {{ class_name }}UpdateSchema, {{ class_name }}OutSchema
+from .param import {{ class_name }}QueryParam
+from .crud import {{ class_name }}CRUD
+
+
+class {{ class_name }}Service:
+    """
+    {{ function_name }}服务层
+    """
+    
+    @classmethod
+    async def detail_service(cls, auth: AuthSchema, id: int) -> Dict:
+        """详情"""
+        obj = await {{ class_name }}CRUD(auth).get_by_id_crud(id=id)
+        if not obj:
+            raise CustomException(msg="该数据不存在")
+        return {{ class_name }}OutSchema.model_validate(obj).model_dump()
+    
+    @classmethod
+    async def list_service(cls, auth: AuthSchema, search: Optional[{{ class_name }}QueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
+        """列表查询"""
+        search_dict = search.__dict__ if search else None
+        obj_list = await {{ class_name }}CRUD(auth).list_crud(search=search_dict, order_by=order_by)
+        return [{{ class_name }}OutSchema.model_validate(obj).model_dump() for obj in obj_list]
+
+    @classmethod
+    async def page_service(cls, auth: AuthSchema, page_no: int, page_size: int, search: Optional[{{ class_name }}QueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Dict:
+        """分页查询（数据库分页）"""
+        search_dict = search.__dict__ if search else {}
+        order_by_list = order_by or [{'id': 'asc'}]
+        offset = (page_no - 1) * page_size
+        result = await {{ class_name }}CRUD(auth).page_crud(
+            offset=offset,
+            limit=page_size,
+            order_by=order_by_list,
+            search=search_dict
+        )
+        return result
+    
+    @classmethod
+    async def create_service(cls, auth: AuthSchema, data: {{ class_name }}CreateSchema) -> Dict:
+        """创建"""
+        # 检查唯一性约束
+        {% for column in columns %}
+        {% if column.is_unique == '1' %}
+        obj = await {{ class_name }}CRUD(auth).get({{ column.column_name }}=data.{{ column.column_name }})
+        if obj:
+            raise CustomException(msg='创建失败，{{ column.column_comment }}已存在')
+        {% endif %}
+        {% endfor %}
+        obj = await {{ class_name }}CRUD(auth).create_crud(data=data)
+        return {{ class_name }}OutSchema.model_validate(obj).model_dump()
+    
+    @classmethod
+    async def update_service(cls, auth: AuthSchema, id: int, data: {{ class_name }}UpdateSchema) -> Dict:
+        """更新"""
+        # 检查数据是否存在
+        obj = await {{ class_name }}CRUD(auth).get_by_id_crud(id=id)
+        if not obj:
+            raise CustomException(msg='更新失败，该数据不存在')
+        
+        # 检查唯一性约束
+        {% for column in columns %}
+        {% if column.is_unique == '1' %}
+        exist_obj = await {{ class_name }}CRUD(auth).get({{ column.column_name }}=data.{{ column.column_name }})
+        if exist_obj and exist_obj.id != id:
+            raise CustomException(msg='更新失败，{{ column.column_comment }}重复')
+        {% endif %}
+        {% endfor %}
+            
+        obj = await {{ class_name }}CRUD(auth).update_crud(id=id, data=data)
+        return {{ class_name }}OutSchema.model_validate(obj).model_dump()
+    
+    @classmethod
+    async def delete_service(cls, auth: AuthSchema, ids: List[int]) -> None:
+        """删除"""
+        if len(ids) < 1:
+            raise CustomException(msg='删除失败，删除对象不能为空')
+        for id in ids:
+            obj = await {{ class_name }}CRUD(auth).get_by_id_crud(id=id)
+            if not obj:
+                raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
+        await {{ class_name }}CRUD(auth).delete_crud(ids=ids)
+    
+    @classmethod
+    async def set_available_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
+        """批量设置状态"""
+        await {{ class_name }}CRUD(auth).set_available_crud(ids=data.ids, status=data.status)
+    
+    @classmethod
+    async def batch_export_service(cls, obj_list: List[Dict[str, Any]]) -> bytes:
+        """批量导出"""
+        mapping_dict = {
+            {% for column in columns %}
+            '{{ column.column_name }}': '{{ column.column_comment }}',
+            {% endfor %}
+            'creator': '创建者',
+        }
+
+        data = obj_list.copy()
+        for item in data:
+            # 状态转换
+            if 'status' in item:
+                item['status'] = '正常' if item.get('status') else '停用'
+            # 创建者转换
+            creator_info = item.get('creator')
+            if isinstance(creator_info, dict):
+                item['creator'] = creator_info.get('name', '未知')
+            elif creator_info is None:
+                item['creator'] = '未知'
+
+        return ExcelUtil.export_list2excel(list_data=data, mapping_dict=mapping_dict)
+
+    @classmethod
+    async def batch_import_service(cls, auth: AuthSchema, file: UploadFile, update_support: bool = False) -> str:
+        """批量导入"""
+        header_dict = {
+            {% for column in columns %}
+            '{{ column.column_comment }}': '{{ column.column_name }}',
+            {% endfor %}
+        }
+
+        try:
+            contents = await file.read()
+            df = pd.read_excel(io.BytesIO(contents))
+            await file.close()
+            
+            if df.empty:
+                raise CustomException(msg="导入文件为空")
+            
+            missing_headers = [header for header in header_dict.keys() if header not in df.columns]
+            if missing_headers:
+                raise CustomException(msg=f"导入文件缺少必要的列: {', '.join(missing_headers)}")
+            
+            df.rename(columns=header_dict, inplace=True)
+            
+            # 验证必填字段
+            {% for column in columns %}
+            {% if column.required == '1' %}
+            missing_rows = df[df['{{ column.column_name }}'].isnull()].index.tolist()
+            if missing_rows:
+                raise CustomException(msg="{{ column.column_comment }}不能为空，第{0}行".format([i+1 for i in missing_rows]))
+            {% endif %}
+            {% endfor %}
+            
+            error_msgs = []
+            success_count = 0
+            count = 0
+            
+            for index, row in df.iterrows():
+                count += 1
+                try:
+                    data = {
+                        {% for column in columns %}
+                        "{{ column.column_name }}": row['{{ column.column_name }}'],
+                        {% endfor %}
+                    }
+                    # 使用CreateSchema做校验后入库
+                    create_schema = {{ class_name }}CreateSchema.model_validate(data)
+                    
+                    # 检查唯一性约束
+                    {% for column in columns %}
+                    {% if column.is_unique == '1' %}
+                    exists_obj = await {{ class_name }}CRUD(auth).get({{ column.column_name }}=create_schema.{{ column.column_name }})
+                    if exists_obj:
+                        if update_support:
+                            await {{ class_name }}CRUD(auth).update(id=exists_obj.id, data=create_schema)
+                            success_count += 1
+                        else:
+                            error_msgs.append(f"第{count}行: {{ column.column_comment }} {create_schema.{{ column.column_name }}} 已存在")
+                        continue
+                    {% endif %}
+                    {% endfor %}
+                    
+                    await {{ class_name }}CRUD(auth).create_crud(data=create_schema)
+                    success_count += 1
+                except Exception as e:
+                    error_msgs.append(f"第{count}行: {str(e)}")
+                    continue
+
+            result = f"成功导入 {success_count} 条数据"
+            if error_msgs:
+                result += "\n错误信息:\n" + "\n".join(error_msgs)
+            return result
+            
+        except Exception as e:
+            logger.error(f"批量导入失败: {str(e)}")
+            raise CustomException(msg=f"导入失败: {str(e)}")
+
+    @classmethod
+    async def import_template_download_service(cls) -> bytes:
+        """下载导入模板"""
+        header_list = [
+            {% for column in columns %}
+            '{{ column.column_comment }}',
+            {% endfor %}
+        ]
+        selector_header_list = []
+        option_list = []
+        
+        # 添加下拉选项
+        {% for column in columns %}
+        {% if column.html_type == 'select' and column.dict_type %}
+        selector_header_list.append('{{ column.column_comment }}')
+        option_list.append({'{{ column.column_comment }}': []})  # 这里应该从字典中获取选项
+        {% endif %}
+        {% endfor %}
+        
+        return ExcelUtil.get_excel_template(
+            header_list=header_list,
+            selector_header_list=selector_header_list,
+            option_list=option_list
+        )
