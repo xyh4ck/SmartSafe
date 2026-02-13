@@ -29,7 +29,7 @@ asyncmy==0.2.9              # mysql 异步操作数据库：基于 mysqlclient�
 PyMySQL==1.1.2              # mysql 同步步操作数据库基于 pymysql：aiomysql 是 pymysql 的异步版本，pymysql 是一个纯 Python 实现的 MySQL 客户端。成熟度：aiomysql 相对较为成熟，社区支持较好，文档也比较完善。
 asyncpg==0.30.0             # postgresql 异步操作数据库基于 psycopg2：asyncpg 是 psycopg2 的异步版本，psycopg2 是一个 pure-Python PostgreSQL 数据库适配器。性能：asyncpg 通常在性能上优于 psycopg2，特别是在高并发和大数据量的场景下。
 # psycopg2==2.9.10            # postgresql 同步操作数据库基于 psycopg2：psycopg2 是一个 pure-Python PostgreSQL 适配器。
-cryptography==45.0.2        # mysql8 密码加密
+cryptography==46.0.5        # mysql8 密码加密
 openai==2.8.0              # ai 大模型
 rich==13.9.4                # 终端打印美化
 sqlglot[rs]==27.8.0         # sql 解析
