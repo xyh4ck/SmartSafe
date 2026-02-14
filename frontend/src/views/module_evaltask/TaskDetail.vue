@@ -21,6 +21,15 @@
             >
               查看报告
             </el-button>
+            <el-button
+              type="success"
+              :icon="Download"
+              @click="exportCaseDetails"
+              :loading="exportLoading"
+              :disabled="!canExportCases"
+            >
+              导出明细
+            </el-button>
           </div>
         </div>
       </template>
@@ -452,6 +461,7 @@ import {
   CircleCloseFilled,
   PieChart,
   InfoFilled,
+  Download,
 } from "@element-plus/icons-vue";
 import EvalTaskAPI, {
   EvalTaskCaseItem,
@@ -481,6 +491,7 @@ const outputDialogVisible = ref(false);
 const currentCase = ref<EvalTaskCaseItem | null>(null);
 const loading = ref(false);
 const manualLoading = ref(false);
+const exportLoading = ref(false);
 const activeTab = ref<"cases" | "logs">("cases");
 const logs = ref<EvalTaskLogItem[]>([]);
 const logTotal = ref(0);
@@ -620,7 +631,43 @@ const canViewReport = computed(() => {
   const status = progress.value?.status;
   return status === "completed" || status === "partial";
 });
+
+const canExportCases = computed(() => progress.value?.status === "completed");
+
 const goReport = () => router.push(`/evaltask/report/${taskId}`);
+
+const exportCaseDetails = async () => {
+  if (!canExportCases.value) {
+    ElMessage.warning("任务执行完毕后才可导出明细");
+    return;
+  }
+  exportLoading.value = true;
+  try {
+    const res = await EvalTaskAPI.exportTaskCases(taskId);
+    const fileData = res.data;
+    const disposition = String(res.headers?.["content-disposition"] || "");
+    let fileName = `evaltask_cases_${taskId}.xlsx`;
+    if (disposition.includes("filename=")) {
+      fileName = decodeURI(disposition.split("filename=")[1].replace(/"/g, "").trim());
+    }
+
+    const fileType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
+    const blob = new Blob([fileData], { type: fileType });
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const downloadLink = document.createElement("a");
+    downloadLink.href = downloadUrl;
+    downloadLink.download = fileName;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    window.URL.revokeObjectURL(downloadUrl);
+    ElMessage.success("导出成功");
+  } catch (e: any) {
+    ElMessage.error(e?.message || "导出失败");
+  } finally {
+    exportLoading.value = false;
+  }
+};
 
 const viewOutput = (row: EvalTaskCaseItem) => {
   currentCase.value = row;

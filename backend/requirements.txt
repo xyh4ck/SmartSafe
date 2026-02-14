@@ -11,6 +11,7 @@ httpx==0.28.1               # HTTP 客户端
 croniter==6.0.0             # 实现cron表达式验证和解析执行计划
 pandas==2.2.2               # 数据处理
 openpyxl==3.1.5             # Excel
+reportlab==4.2.5            # PDF 报告生成
 SQLAlchemy==2.0.36          # 数据库ORM
 pillow==11.0.0              # 图片处理
 passlib==1.7.4              # 密码加密

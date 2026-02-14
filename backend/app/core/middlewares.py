@@ -125,11 +125,17 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
                 if user_id:
                     user_info += f", 用户ID: {user_id}"
             else:
-                user_info = "未认证请求"
+                if request.method == "OPTIONS":
+                    user_info = "匿名请求(预检请求)"
+                elif path in white_api_list_path:
+                    user_info = "匿名请求(白名单接口)"
+                else:
+                    user_info = "未认证请求(非白名单接口, 可疑访问)"
             
             content_length = response.headers.get('content-length', '0')
             response_info = (
                 f"{user_info}, "
+                f"请求路径: {path}, "
                 f"响应状态: {response.status_code}, "
                 f"响应内容长度: {content_length}, "
                 f"处理时间: {process_time}s"

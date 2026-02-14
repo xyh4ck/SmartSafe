@@ -61,6 +61,22 @@ const EvalTaskAPI = {
     });
   },
 
+  exportTaskCases(taskId: number) {
+    return request<Blob>({
+      url: `${API_PATH}/tasks/${taskId}/cases/export`,
+      method: "get",
+      responseType: "blob",
+    });
+  },
+
+  exportTaskReport(taskId: number) {
+    return request<Blob>({
+      url: `${API_PATH}/tasks/${taskId}/report/export`,
+      method: "get",
+      responseType: "blob",
+    });
+  },
+
   deleteTasks(ids: number[]) {
     return request<ApiResponse<{ count: number }>>({
       url: `${API_PATH}/tasks`,
