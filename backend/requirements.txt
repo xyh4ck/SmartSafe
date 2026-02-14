@@ -19,7 +19,7 @@ user-agents==2.2.0          # 获取用户UA
 PyJWT==2.9.0                # OAuth2
 pydantic-settings==2.12.0   # 配置设置
 psutil==6.1.0               # 系统信息
-python-multipart==0.0.9     # request.form() 对表单进行「解析」时安装
+python-multipart==0.0.22     # request.form() 对表单进行「解析」时安装
 greenlet==3.1.1             # 协程框架
 bcrypt==4.0.1               # 密码加密解析,切勿升级，如果升级，请同时升级python版本
 itsdangerous==2.2.0         # 用于安全处理各种数据，如密码、密钥等
