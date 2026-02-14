@@ -150,13 +150,36 @@ docker compose up -d redis
 
 ## 系统截图
 
-![评测任务管理](docs/image1.png)
-![评测任务详情](docs/image2.png)
-![测试用例评测风险详情](docs/image3.png)
-![测试用例评测风险详情](docs/image4.png)
-![测试用例管理](docs/image5.png)
-![风险分类管理](docs/image6.png)
-![模型管理](docs/image7.png)
+### 评测任务管理-生成内容评测
+![](docs/image1.png)
+
+### 评测任务管理-任务详情
+![](docs/image2.png)
+![](docs/image3.png)
+![](docs/image4.png)
+
+### 测试用例管理-关键词题库
+![](docs/image5.png)
+
+### 测试用例管理-生成内容测试题库
+![](docs/image6.png)
+
+### 测试用例管理-候选题审核
+![](docs/image7.png)
+
+### 测试用例管理-风险分类
+![](docs/image6.png)
+
+### 模型接入管理-模型管理
+![](docs/image7.png)
+
+
+
+## 未来开发计划
+
+1. 大模型相关漏洞库开发：构建专属大模型漏洞库，实现漏洞收集、分类、更新、匹配、扫描的全流程管理，联动现有评测用例库，提升评测精准度，支持漏洞自动扫描与风险预警，形成漏洞治理闭环。
+2. Skills 安全扫描能力开发：覆盖大模型技能（插件/应用）的全生命周期安全，重点打造Skills安全扫描核心能力，实现技能注册审核、运行时监控、恶意行为识别、安全评级的全流程扫描管控，联动评测流程完善安全闭环。
+3. MCP 安全扫描能力开发：聚焦大模型通信协议（MCP）安全，重点构建MCP安全扫描能力，实现协议适配、加密校验、身份认证、数据传输检测、异常行为拦截的全流程扫描防护，保障模型通信全链路安全。
 
 ## 开发者指南
 
@@ -179,19 +202,6 @@ module_xxx/
 - 后端：`backend/app/api/v1/module_{your_module}/{your_feature}/...`
 - 前端页面：`frontend/src/views/module_{your_module}/...`
 - 前端 API：`frontend/src/api/module_{your_module}/...`
-
-### 常用命令
-
-```bash
-cd backend
-
-# 迁移
-python main.py revision --env=dev
-python main.py upgrade --env=dev
-
-# 启动
-python main.py run --env=dev
-```
 
 ## 特别鸣谢
 
