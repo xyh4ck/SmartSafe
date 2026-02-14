@@ -13,7 +13,7 @@ pandas==2.2.2               # 数据处理
 openpyxl==3.1.5             # Excel
 reportlab==4.2.5            # PDF 报告生成
 SQLAlchemy==2.0.36          # 数据库ORM
-pillow==11.0.0              # 图片处理
+pillow==12.1.1              # 图片处理
 passlib==1.7.4              # 密码加密
 user-agents==2.2.0          # 获取用户UA
 PyJWT==2.9.0                # OAuth2
