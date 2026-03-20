@@ -3,6 +3,7 @@ __pycache__
 .idea
 .DS_Store
 .git
+.claude
 
 
 backend/__pycache__
@@ -33,3 +34,4 @@ devops/redis/data
 devops/mysql/data
 
 deploy.sh
+CLAUDE.md
