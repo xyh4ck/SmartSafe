@@ -434,32 +434,48 @@ class ResourceService:
             if not order_by:
                 return sorted(results, key=lambda x: x.get('name', ''), reverse=False)
             
-            # 解析order_by参数，格式: [{'field':'asc/desc'}]
+            # 解析order_by参数，格式: [{"field":"name","direction":"asc"}]
+            # 使用 json.loads 替代 eval() 防止代码注入攻击
             try:
-                sort_conditions = eval(order_by)
-                if isinstance(sort_conditions, list):
-                    # 构建排序键函数
-                    def sort_key(item):
-                        keys = []
-                        for cond in sort_conditions:
-                            field = cond.get('field', 'name')
-                            direction = cond.get('direction', 'asc')
-                            # 获取字段值，默认为空字符串
-                            value = item.get(field, '')
-                            # 如果是日期字段，转换为可比较的格式
-                            if field in ['created_time', 'modified_time', 'accessed_time'] and value:
-                                value = datetime.fromisoformat(value)
-                            keys.append(value)
-                        return keys
-                    
-                    # 确定排序方向（这里只支持单一方向，多个条件时使用第一个条件的方向）
-                    reverse = False
-                    if sort_conditions and isinstance(sort_conditions[0], dict):
-                        direction = sort_conditions[0].get('direction', '').lower()
-                        reverse = direction == 'desc'
-                    
-                    return sorted(results, key=sort_key, reverse=reverse)
-            except:
+                import json
+                sort_conditions = json.loads(order_by)
+                # 验证数据结构和类型
+                if not isinstance(sort_conditions, list):
+                    raise ValueError("sort_conditions must be a list")
+                # 允许的排序字段（白名单）
+                allowed_fields = {'name', 'size', 'created_time', 'modified_time', 'accessed_time', 'type'}
+                for cond in sort_conditions:
+                    if not isinstance(cond, dict):
+                        raise ValueError("Each condition must be a dict")
+                    field = cond.get('field', 'name')
+                    if field not in allowed_fields:
+                        raise ValueError(f"Invalid field: {field}")
+                    direction = cond.get('direction', 'asc')
+                    if direction not in ('asc', 'desc'):
+                        raise ValueError(f"Invalid direction: {direction}")
+
+                # 构建排序键函数
+                def sort_key(item):
+                    keys = []
+                    for cond in sort_conditions:
+                        field = cond.get('field', 'name')
+                        direction = cond.get('direction', 'asc')
+                        # 获取字段值，默认为空字符串
+                        value = item.get(field, '')
+                        # 如果是日期字段，转换为可比较的格式
+                        if field in ['created_time', 'modified_time', 'accessed_time'] and value:
+                            value = datetime.fromisoformat(value)
+                        keys.append(value)
+                    return keys
+
+                # 确定排序方向（这里只支持单一方向，多个条件时使用第一个条件的方向）
+                reverse = False
+                if sort_conditions and isinstance(sort_conditions[0], dict):
+                    direction = sort_conditions[0].get('direction', '').lower()
+                    reverse = direction == 'desc'
+
+                return sorted(results, key=sort_key, reverse=reverse)
+            except (json.JSONDecodeError, ValueError):
                 # 如果解析失败，使用默认排序
                 pass
             
