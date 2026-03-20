@@ -324,9 +324,3 @@ module_xxx/
 **特别感谢**
 
 [![FastapiAdmin](https://img.shields.io/badge/FastapiAdmin-009688)](https://github.com/fastapi-admin/fastapi-admin)
-
-## ⭐ Star History
-
-如果对您有帮助，请给一个 Star ⭐！
-
-[![Star History Chart](https://api.star-history.com/image?repos=xyh4ck/SmartSafe&type=date&legend=top-left)](https://www.star-history.com/?repos=xyh4ck%2FSmartSafe&type=date&legend=top-left)
